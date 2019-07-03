@@ -13,7 +13,8 @@ class App extends React.Component {
       currentCell: '',
       days: [],
       isShowModal: false,
-      eventValue: ''
+      eventValue: '',
+      daysWithEvents: []
     }
   }
 
@@ -29,7 +30,12 @@ class App extends React.Component {
     for (let i = 1; i <= lastday.getDate(); i++) {
       daysThisMonth.push({ day: i, month: date.getMonth() + 1 })
     }
-    if (firstday.getDay() !== 1) {
+    if (firstday.getDay() === 0) {
+      for (let i = 0; i < 6; i++) {
+        daysThisMonth.unshift({ id: '' })
+      }
+    }
+    if (firstday.getDay() > 1) {
       for (let i = 0; i < firstday.getDay() - 1; i++) {
         daysThisMonth.unshift({ id: '' })
       }
@@ -41,29 +47,30 @@ class App extends React.Component {
     }
 
     this.setState({
-      month: date.getMonth(),
-      days: daysThisMonth
+      month: date.getMonth() + 1
+    }, () => { this.setDays(daysThisMonth) })
+  }
+
+  setDays = (daysThisMonth) => {
+    this.setState({
+      days: this.addToDays(daysThisMonth, this.state.daysWithEvents)
     })
-    // console.log(date, firstday.getDay(), lastday.getDay(), daysThisMonth);
   }
 
   changeMonth = (event) => {
     let button = event.target.value;
+    let day = this.state.currentDay;
+    let firstday;
     if (button === 'prev') {
-      let day = this.state.currentDay;
-      this.setState({
-        currentDay: new Date(day.getFullYear(), day.getMonth() - 1)
-      }, () => { this.createCalendar(this.state.currentDay) })
+      firstday = new Date(day.getFullYear(), day.getMonth() - 1)
     } else if (button === 'next') {
-      let day = this.state.currentDay;
-      this.setState({
-        currentDay: new Date(day.getFullYear(), day.getMonth() + 1)
-      }, () => { this.createCalendar(this.state.currentDay) })
+      firstday = new Date(day.getFullYear(), day.getMonth() + 1)
     } else if (button === 'now') {
-      this.setState({
-        currentDay: new Date()
-      }, () => { this.createCalendar(this.state.currentDay) })
+      firstday = new Date();
     }
+    this.setState({
+      currentDay: firstday,
+    }, () => { this.createCalendar(this.state.currentDay) })
   }
 
   showModal = (event) => {
@@ -75,7 +82,6 @@ class App extends React.Component {
 
   changeValue = (event) => {
     this.setState({ eventValue: event.target.value });
-    console.log(event.target.value)
   }
 
   addEvent = () => {
@@ -83,12 +89,15 @@ class App extends React.Component {
     copy.forEach(item => {
       if (item.day == this.state.currentCell) {
         item.todos = this.state.eventValue;
+        this.setState(prevState => ({
+          daysWithEvents: [...prevState.daysWithEvents, item]
+        }))
       }
     });
     this.setState({
       days: copy,
       isShowModal: false
-    })
+    });
   }
 
   cancelAdding = () => {
@@ -97,11 +106,27 @@ class App extends React.Component {
     })
   }
 
+  addToDays = (monthdays, eventdays) => {
+    let events = eventdays.filter(item =>
+      item.month === this.state.month
+    )
+    let showDays = monthdays.map(el => {
+      events.forEach(item => {
+        if (el.day === item.day) {
+          el = item;
+        }
+      })
+      return el;
+    })
+    return showDays;
+  }
+
   render() {
     return (
       <div className="App" >
         <header className="header">
           <h1>The calendar</h1>
+          <h2>{this.state.month}</h2>
           <ChooseMonth changeMonth={this.changeMonth} />
         </header>
         <Calendar items={this.state.days} showModal={this.showModal} />
