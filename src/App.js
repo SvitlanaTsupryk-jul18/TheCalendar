@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import ChooseMonth from './Components/ChooseMonth'
 import Calendar from './Components/Calendar'
+import Modal from './Components/Modal'
 
 class App extends React.Component {
   constructor(props) {
@@ -9,10 +10,13 @@ class App extends React.Component {
     this.state = {
       currentDay: new Date(),
       month: '',
-      item: '',
-      days: []
+      currentCell: '',
+      days: [],
+      isShowModal: false,
+      eventValue: ''
     }
   }
+
   componentDidMount() {
     this.createCalendar(this.state.currentDay)
   }
@@ -40,8 +44,9 @@ class App extends React.Component {
       month: date.getMonth(),
       days: daysThisMonth
     })
-    console.log(date, firstday.getDay(), lastday.getDay(), daysThisMonth);
+    // console.log(date, firstday.getDay(), lastday.getDay(), daysThisMonth);
   }
+
   changeMonth = (event) => {
     let button = event.target.value;
     if (button === 'prev') {
@@ -59,17 +64,55 @@ class App extends React.Component {
         currentDay: new Date()
       }, () => { this.createCalendar(this.state.currentDay) })
     }
-
   }
+
+  showModal = (event) => {
+    this.setState({
+      isShowModal: true,
+      currentCell: event.target.textContent
+    })
+  }
+
+  changeValue = (event) => {
+    this.setState({ eventValue: event.target.value });
+    console.log(event.target.value)
+  }
+
+  addEvent = () => {
+    let copy = this.state.days;
+    copy.forEach(item => {
+      if (item.day == this.state.currentCell) {
+        item.todos = this.state.eventValue;
+      }
+    });
+    this.setState({
+      days: copy,
+      isShowModal: false
+    })
+  }
+
+  cancelAdding = () => {
+    this.setState({
+      isShowModal: false
+    })
+  }
+
   render() {
     return (
-      <div className="App">
+      <div className="App" >
         <header className="header">
           <h1>The calendar</h1>
           <ChooseMonth changeMonth={this.changeMonth} />
         </header>
-        <Calendar items={this.state.days} />
-      </div>
+        <Calendar items={this.state.days} showModal={this.showModal} />
+        {this.state.isShowModal &&
+          <Modal
+            eventValue={this.state.eventValue}
+            changeValue={this.changeValue}
+            addEvent={this.addEvent}
+            cancelAdding={this.cancelAdding}
+          />}
+      </div >
     );
   }
 }
