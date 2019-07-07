@@ -58,6 +58,7 @@ class App extends React.Component {
   }
 
   changeMonth = (event) => {
+    if (event.target.type !== "button") return;
     let button = event.target.value;
     let day = this.state.currentDay;
     let firstday;
@@ -125,7 +126,7 @@ class App extends React.Component {
     return (
       <div className="App" >
         <header className="header">
-          <h1>The calendar</h1>
+          <h1>My calendar</h1>
           <h2>{this.state.month}</h2>
           <ChooseMonth changeMonth={this.changeMonth} />
         </header>
